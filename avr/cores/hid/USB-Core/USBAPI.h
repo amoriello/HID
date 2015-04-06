@@ -102,6 +102,14 @@ void	CDC_LineStateEvent(void);
 
 //================================================================================
 //================================================================================
+//  MIDI/AC 'Driver'
+
+int     AC_GetInterface(uint8_t* interfaceNum);
+int     MIDI_GetInterface(uint8_t* interfaceNum);
+bool    MIDI_Setup(Setup& setup);
+
+//================================================================================
+//================================================================================
 
 #define TRANSFER_PGM		0x80
 #define TRANSFER_RELEASE	0x40
@@ -111,6 +119,7 @@ int USB_SendControl(uint8_t flags, const void* d, int len);
 int USB_RecvControl(void* d, int len);
 
 uint8_t	USB_Available(uint8_t ep);
+uint8_t USB_Ready(uint8_t ep); // added for MIDI
 int USB_Send(uint8_t ep, const void* data, int len);	// blocking
 int USB_Recv(uint8_t ep, void* data, int len);		// non-blocking
 int USB_Recv(uint8_t ep);							// non-blocking

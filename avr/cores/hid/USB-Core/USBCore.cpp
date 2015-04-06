@@ -96,7 +96,7 @@ const u8 STRING_MANUFACTURER[] PROGMEM = USB_MANUFACTURER;
 // http://www.usb.org/developers/defined_class
 
 //	DEVICE DESCRIPTOR
-#if defined(CDC_ENABLED) && defined(HID_ENABLED)
+#if defined(CDC_ENABLED) && defined(HID_ENABLED) || defined(CDC_ENABLED) && defined(MIDI_ENABLED)
 const DeviceDescriptor USB_DeviceDescriptor =
 D_DEVICE(USB_DEVICE_CLASS_IAD, USB_DEVICE_SUB_CLASS_IAD, USB_DEVICE_PROTOCOL_IAD, 64, USB_VID, USB_PID, 0x100, IMANUFACTURER, IPRODUCT, 0, 1);
 
@@ -104,7 +104,7 @@ D_DEVICE(USB_DEVICE_CLASS_IAD, USB_DEVICE_SUB_CLASS_IAD, USB_DEVICE_PROTOCOL_IAD
 const DeviceDescriptor USB_DeviceDescriptor =
 D_DEVICE(USB_DEVICE_CDC_CLASS, USB_DEVICE_CDC_SUB_CLASS, USB_DEVICE_CDC_PROTOCOL, 64, USB_VID, USB_PID, 0x100, IMANUFACTURER, IPRODUCT, 0, 1);
 
-//#elif defined(HID_ENABLED)
+//#elif defined(HID_ENABLED) || defined(MIDI_ENABLED)
 #else
 const DeviceDescriptor USB_DeviceDescriptor =
 D_DEVICE(USB_DEVICE_NO_CLASS, USB_DEVICE_NO_SUB_CLASS, USB_DEVICE_NO_PROTOCOL, 64, USB_VID, USB_PID, 0x100, IMANUFACTURER, IPRODUCT, 0, 1);
@@ -297,6 +297,12 @@ u8 USB_SendSpace(u8 ep)
 	return USB_EP_SIZE - FifoByteCount();
 }
 
+// added for MIDI
+u8 USB_Ready(u8 ep) {
+	LockEP lock(ep);
+	return ReadWriteAllowed();
+}
+
 //	Blocking Send of data to an endpoint
 int USB_Send(u8 ep, const void* d, int len)
 {
@@ -361,7 +367,12 @@ const u8 _initEndpoints[] =
 #endif
 
 #ifdef HID_ENABLED
-	EP_TYPE_INTERRUPT_IN		// HID_ENDPOINT_INT
+	EP_TYPE_INTERRUPT_IN,		// HID_ENDPOINT_INT
+#endif
+
+#ifdef MIDI_ENABLED
+	EP_TYPE_BULK_OUT,
+	EP_TYPE_BULK_IN,
 #endif
 };
 
@@ -414,6 +425,11 @@ bool ClassInterfaceRequest(Setup& setup)
 #ifdef HID_ENABLED
 	if (HID_INTERFACE == i)
 		return HID_Setup(setup);
+#endif
+
+#ifdef MIDI_ENABLED
+	if (MIDI_INTERFACE == i)
+		return MIDI_Setup(setup);
 #endif
 	return false;
 }
@@ -495,6 +511,11 @@ int SendInterfaces()
 
 #ifdef HID_ENABLED
 	total += HID_GetInterface(&interfaces);
+#endif
+
+#ifdef MIDI_ENABLED
+	total += AC_GetInterface(&interfaces);
+	total += MIDI_GetInterface(&interfaces);
 #endif
 
 	return interfaces;
@@ -777,6 +798,12 @@ ISR(USB_GEN_vect)
 	{
 #ifdef CDC_ENABLED
 		USB_Flush(CDC_TX);				// Send a tx frame if found
+#endif
+
+#ifdef MIDI_ENABLED
+		USB_Flush(MIDI_TX);
+		if (USB_Available(MIDI_RX))
+			MIDIUSB.accept();
 #endif
 
 		// check whether the one-shot period has elapsed.  if so, turn off the LED
