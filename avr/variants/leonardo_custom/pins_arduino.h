@@ -39,8 +39,8 @@ You still can use the predefined hid reports or add you very own ones.
 You have to enable the specific hid apis on your own then, also the keyboard led function.
 */
 
-#define HID_AUTOMATIC
-//#define HID_CUSTOM_SETTINGS
+//#define HID_AUTOMATIC
+#define HID_CUSTOM_SETTINGS
 
 //================================================================================
 // Automatic
@@ -70,19 +70,36 @@ You have to enable the specific hid apis on your own then, also the keyboard led
 //#define HID_KEYBOARD_LEDS_ENABLED
 
 // add your custom report here:
-#define EXTERN_HID_REPORT \
-HID_REPORT_KEYBOARD_KEYS(HID_REPORTID_KEYBOARD), \
-HID_REPORT_MOUSE(HID_REPORTID_MOUSE)
+#define EXTERN_HID_REPORT HID_REPORT_KEYBOARD_NKRO(HID_REPORTID_KEYBOARD)
 
 // activate your custom HID-APIs here:
-#define HID_MOUSE_API_ENABLE
+//#define HID_MOUSE_API_ENABLE
 //#define HID_MOUSE_ABSOLUTE_API_ENABLE
-#define HID_KEYBOARD_API_ENABLE
+//#define HID_KEYBOARD_API_ENABLE
 //#define HID_RAWHID_API_ENABLE
 //#define HID_CONSUMERCONTROL_API_ENABLE
 //#define HID_SYSTEMCONTROL_API_ENABLE
 //#define HID_GAMEPAD_API_ENABLE
 //#define HID_ENABLE_ALL_APIS // enables all of the ones above
+
+// Keyboard Protocol, HID 1.11 Spec NON-BOOT
+#define NKRO_KEY_COUNT (8*15) // max value for USB EP_SIZE 16
+#define HID_REPORT_KEYBOARD_NKRO(report_id)    /*  Keyboard */ \
+    0x05, 0x01,                      /* USAGE_PAGE (Generic Desktop)	  47 */ \
+    0x09, 0x06,                      /* USAGE (Keyboard) */ \
+    0xa1, 0x01,                      /* COLLECTION (Application) */ \
+    0x85, report_id,				 /*   REPORT_ID */ \
+    0x05, 0x07,                      /*   USAGE_PAGE (Keyboard) */ \
+	/* Keys */ \
+	0x05, 0x07,											/*   Usage Page (Key Codes) */ \
+	0x19, 0x00,											/*   Usage Minimum (0) */ \
+	0x29, NKRO_KEY_COUNT - 1,							/*   Usage Maximum (103) */ \
+	0x15, 0x00,											/*   Logical Minimum (0) */ \
+	0x25, 0x01,											/*   Logical Maximum (1) */ \
+	0x75, 0x01,											/*   Report Size (1) */ \
+	0x95, NKRO_KEY_COUNT,								/*   Report Count (104) */ \
+	0x81, 0x02,											/*   Input (Data, Variable, Absolute) */ \
+	0xC0											/*   End Collection */
 
 
 //// 2nd example with a custom Joystick report (the Gamepad API wont work anymor since the report is different)
