@@ -18,7 +18,7 @@ leonardoExtended.bootloader.tool=arduino:avrdude
 leonardoExtended.bootloader.low_fuses=0xff
 leonardoExtended.bootloader.high_fuses=0xd8
 leonardoExtended.bootloader.extended_fuses=0xcb
-leonardoExtended.bootloader.file=arduino:caterina/Caterina-leonardo.hex
+leonardoExtended.bootloader.file=Leonardo.hex
 leonardoExtended.bootloader.unlock_bits=0x3F
 leonardoExtended.bootloader.lock_bits=0x2F
 
@@ -26,28 +26,47 @@ leonardoExtended.build.mcu=atmega32u4
 leonardoExtended.build.f_cpu=16000000L
 leonardoExtended.build.core=HID:hid
 leonardoExtended.build.vid=0x2341
-#leonardoExtended.build.pid=0x8036
+leonardoExtended.build.pid=0x8036
 leonardoExtended.build.usb_product="Arduino Leonardo"
 leonardoExtended.build.board=AVR_LEONARDO
 leonardoExtended.build.extra_flags={build.usb_flags}
 
 #USB core selection
 #HID Project needs to be installed https://github.com/NicoHood/HID
+
+#Extended HID
 leonardoExtended.menu.usbcore.hid=Serial + Extended HID
-leonardoExtended.menu.usbcore.hid.build.variant=leonardo_hid
-leonardoExtended.menu.usbcore.hid.build.pid=0x8036
+leonardoExtended.menu.usbcore.hid.build.variant=arduino:leonardo
+#leonardoExtended.menu.usbcore.hid.build.pid=0x8036
+leonardoExtended.menu.usbcore.hid.build.extra_flags={build.usb_flags} -DHID_MOUSE_ENABLE -DHID_MOUSE_ABSOLUTE_ENABLE -DHID_KEYBOARD_LEDS_ENABLE -DHID_CONSUMERCONTROL_ENABLE -DHID_SYSTEMCONTROL_ENABLE
+
+#NKRO Keyboard
+leonardoExtended.menu.usbcore.nkro=Serial + NKRO Keyboard, Mouse, Gamepad
+leonardoExtended.menu.usbcore.nkro.build.variant=arduino:leonardo
+#leonardoExtended.menu.usbcore.nkro.build.pid=0x8036
+leonardoExtended.menu.usbcore.nkro.build.extra_flags={build.usb_flags} -DHID_MOUSE_ENABLE -DHID_KEYBOARD_NKRO_LEDS_ENABLE -DHID_GAMEPAD_ENABLE
+
+#Gamepad
 leonardoExtended.menu.usbcore.gamepad=Serial + Gamepad HID
-leonardoExtended.menu.usbcore.gamepad.build.variant=leonardo_gamepad
-leonardoExtended.menu.usbcore.gamepad.build.pid=0x8036
+leonardoExtended.menu.usbcore.gamepad.build.variant=arduino:leonardo
+#leonardoExtended.menu.usbcore.gamepad.build.pid=0x8036
+leonardoExtended.menu.usbcore.gamepad.build.extra_flags={build.usb_flags} -DHID_GAMEPAD_ENABLE
+
+#Custom
 leonardoExtended.menu.usbcore.custom=Serial + Custom HID
 leonardoExtended.menu.usbcore.custom.build.variant=leonardo_custom
-leonardoExtended.menu.usbcore.custom.build.pid=0x8036
+#leonardoExtended.menu.usbcore.custom.build.pid=0x8036
+leonardoExtended.menu.usbcore.custom.build.extra_flags={build.usb_flags} -DHID_CUSTOM_DESCRIPTOR
+
+#Default Core
 leonardoExtended.menu.usbcore.USB_CORE=Default Core
-leonardoExtended.menu.usbcore.USB_CORE.build.variant=leonardo
-leonardoExtended.menu.usbcore.USB_CORE.build.pid=0x8036
+leonardoExtended.menu.usbcore.USB_CORE.build.variant=arduino:leonardo
+#leonardoExtended.menu.usbcore.USB_CORE.build.pid=0x8036
+
+#No USB
 leonardoExtended.menu.usbcore.NO_USB=No USB functions
 leonardoExtended.menu.usbcore.NO_USB.build.variant=leonardo_no_usb
-leonardoExtended.menu.usbcore.NO_USB.build.pid=0x8036
+#leonardoExtended.menu.usbcore.NO_USB.build.pid=0x8036
 
 ##############################################################
 
@@ -65,7 +84,7 @@ microExtended.bootloader.tool=arduino:avrdude
 microExtended.bootloader.low_fuses=0xff
 microExtended.bootloader.high_fuses=0xd8
 microExtended.bootloader.extended_fuses=0xcb
-microExtended.bootloader.file=arduino:caterina/Caterina-Micro.hex
+microExtended.bootloader.file=Micro.hex
 microExtended.bootloader.unlock_bits=0x3F
 microExtended.bootloader.lock_bits=0x2F
 
