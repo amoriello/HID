@@ -49,16 +49,21 @@ THE SOFTWARE.
 #include "pins_arduino.h"
 
 #if !defined(EXTERN_HID_REPORT) && !defined(HID_MOUSE_ENABLE) && !defined(HID_KEYBOARD_KEYS_ENABLE) \
-&& !defined(HID_KEYBOARD_LEDS_ENABLE) && !defined(HID_MOUSE_ABSOLUTE_ENABLE) && !defined(HID_RAWHID_ENABLE) \
+&& !defined(HID_KEYBOARD_LEDS_ENABLE) && !defined(HID_KEYBOARD_NKRO_KEYS_ENABLE) && !defined(HID_KEYBOARD_NKRO_LEDS_ENABLE) \
+&& !defined(HID_MOUSE_ABSOLUTE_ENABLE) && !defined(HID_RAWHID_ENABLE) \
 && !defined(HID_CONSUMERCONTROL_ENABLE) && !defined(HID_SYSTEM_ENABLE) && !defined(HID_GAMEPAD_ENABLE) 
 // by default enable mouse + keyboard api
 #define HID_MOUSE_ENABLE
 #define HID_KEYBOARD_KEYS_ENABLE
 #endif
 
-#ifdef HID_KEYBOARD_LEDS_ENABLE
+#if defined(HID_KEYBOARD_LEDS_ENABLE) || defined(HID_KEYBOARD_NKRO_LEDS_ENABLE)
 // enable the Keyboard Led functions if the led report is selected
 #define HID_KEYBOARD_LEDS_ENABLED
+#endif
+
+#if ( defined(HID_KEYBOARD_KEYS_ENABLE) || defined(HID_KEYBOARD_LEDS_ENABLE) ) && ( defined(HID_KEYBOARD_NKRO_KEYS_ENABLE) || defined(HID_KEYBOARD_NKRO_LEDS_ENABLE) )
+#error Normal Keyboard and NKRO cannot be used at the same time
 #endif
 
 #if defined(HID_MOUSE_ENABLE) || defined(HID_MOUSE_ABSOLUTE_API_ENABLE)
@@ -70,6 +75,10 @@ THE SOFTWARE.
 #if defined(HID_KEYBOARD_LEDS_ENABLE) || defined(HID_KEYBOARD_KEYS_ENABLE)
 #define HID_KEYBOARD_ENABLE
 #define HID_KEYBOARD_API_ENABLE
+#endif
+#if defined(HID_KEYBOARD_NKRO_LEDS_ENABLE) || defined(HID_KEYBOARD_NKRO_KEYS_ENABLE)
+#define HID_KEYBOARD_NKRO_ENABLE
+#define HID_KEYBOARD_NKRO_API_ENABLE
 #endif
 #ifdef HID_RAWHID_ENABLE
 #define HID_RAWHID_API_ENABLE
@@ -253,6 +262,102 @@ extern volatile uint8_t hid_keyboard_leds;
     0xc0                            /* END_COLLECTION */
 #endif
 
+// Keyboard Protocol, HID 1.11 Spec NON-BOOT
+#define NKRO_KEY_COUNT (8*13) // max value for USB EP_SIZE 16
+#ifndef HID_REPORT_KEYBOARD_NKRO_LEDS
+#define HID_REPORT_KEYBOARD_NKRO_LEDS(report_id)    /*  Keyboard */ \
+    0x05, 0x01,                      /* USAGE_PAGE (Generic Desktop)	  47 */ \
+    0x09, 0x06,                      /* USAGE (Keyboard) */ \
+    0xa1, 0x01,                      /* COLLECTION (Application) */ \
+    0x85, report_id,				 /*   REPORT_ID */ \
+    0x05, 0x07,                      /*   USAGE_PAGE (Keyboard) */ \
+\
+    /* Keyboard Modifiers (shift, alt, ...) */ \
+    0x19, 0xe0,                      /*   USAGE_MINIMUM (Keyboard LeftControl) */ \
+    0x29, 0xe7,                      /*   USAGE_MAXIMUM (Keyboard Right GUI) */ \
+    0x15, 0x00,                      /*   LOGICAL_MINIMUM (0) */ \
+    0x25, 0x01,                      /*   LOGICAL_MAXIMUM (1) */ \
+    0x75, 0x01,                      /*   REPORT_SIZE (1) */ \
+	0x95, 0x08,                      /*   REPORT_COUNT (8) */ \
+    0x81, 0x02,                      /*   INPUT (Data,Var,Abs) */ \
+\
+		/* 5 LEDs for num lock etc */ \
+	0x05, 0x08,						 /*   USAGE_PAGE (LEDs) */ \
+	0x19, 0x01,						 /*   USAGE_MINIMUM (Num Lock) */ \
+	0x29, 0x05,						 /*   USAGE_MAXIMUM (Kana) */ \
+	0x95, 0x05,						 /*   REPORT_COUNT (5) */ \
+	0x75, 0x01,						 /*   REPORT_SIZE (1) */ \
+	0x91, 0x02,						 /*   OUTPUT (Data,Var,Abs) */ \
+	/*  Reserved 3 bits */ \
+	0x95, 0x01,						 /*   REPORT_COUNT (1) */ \
+	0x75, 0x03,						 /*   REPORT_SIZE (3) */ \
+	0x91, 0x03,						 /*   OUTPUT (Cnst,Var,Abs) */ \
+\
+	/* 104 Keys as bitmap */ \
+	0x05, 0x07,						/*   Usage Page (Key Codes) */ \
+	0x19, 0x00,						/*   Usage Minimum (0) */ \
+	0x29, NKRO_KEY_COUNT - 1,		/*   Usage Maximum (103) */ \
+	0x15, 0x00,						/*   Logical Minimum (0) */ \
+	0x25, 0x01,						/*   Logical Maximum (1) */ \
+	0x75, 0x01,						/*   Report Size (1) */ \
+	0x95, NKRO_KEY_COUNT,			/*   Report Count (104) */ \
+	0x81, 0x02,						/*   Input (Data, Variable, Absolute) */ \
+\
+    /* 1 Custom Keyboard key */ \
+    0x95, 0x01,                      /*   REPORT_COUNT (1) */ \
+    0x75, 0x08,                      /*   REPORT_SIZE (8) */ \
+    0x15, 0x00,                      /*   LOGICAL_MINIMUM (0) */ \
+    0x26, 0xE7, 0x00,                /*   LOGICAL_MAXIMUM (231) */ \
+    /*0x05, 0x07,                         USAGE_PAGE (Keyboard) */ \
+    0x19, 0x00,                      /*   USAGE_MINIMUM (Reserved (no event indicated)) */ \
+    0x29, 0xE7,                      /*   USAGE_MAXIMUM (Keyboard Right GUI) */ \
+    0x81, 0x00,                      /*   INPUT (Data,Ary,Abs) */ \
+\
+    /* End */ \
+	0xC0						     /*   End Collection */
+#endif
+
+#ifndef HID_REPORT_KEYBOARD_NKRO_KEYS
+#define HID_REPORT_KEYBOARD_NKRO_KEYS(report_id)    /*  Keyboard */ \
+    0x05, 0x01,                      /* USAGE_PAGE (Generic Desktop)	  47 */ \
+    0x09, 0x06,                      /* USAGE (Keyboard) */ \
+    0xa1, 0x01,                      /* COLLECTION (Application) */ \
+    0x85, report_id,				 /*   REPORT_ID */ \
+    0x05, 0x07,                      /*   USAGE_PAGE (Keyboard) */ \
+\
+    /* Keyboard Modifiers (shift, alt, ...) */ \
+    0x19, 0xe0,                      /*   USAGE_MINIMUM (Keyboard LeftControl) */ \
+    0x29, 0xe7,                      /*   USAGE_MAXIMUM (Keyboard Right GUI) */ \
+    0x15, 0x00,                      /*   LOGICAL_MINIMUM (0) */ \
+    0x25, 0x01,                      /*   LOGICAL_MAXIMUM (1) */ \
+    0x75, 0x01,                      /*   REPORT_SIZE (1) */ \
+	0x95, 0x08,                      /*   REPORT_COUNT (8) */ \
+    0x81, 0x02,                      /*   INPUT (Data,Var,Abs) */ \
+\
+	/* 104 Keys as bitmap */ \
+	0x05, 0x07,						/*   Usage Page (Key Codes) */ \
+	0x19, 0x00,						/*   Usage Minimum (0) */ \
+	0x29, NKRO_KEY_COUNT - 1,		/*   Usage Maximum (103) */ \
+	0x15, 0x00,						/*   Logical Minimum (0) */ \
+	0x25, 0x01,						/*   Logical Maximum (1) */ \
+	0x75, 0x01,						/*   Report Size (1) */ \
+	0x95, NKRO_KEY_COUNT,			/*   Report Count (104) */ \
+	0x81, 0x02,						/*   Input (Data, Variable, Absolute) */ \
+\
+    /* 1 Custom Keyboard key */ \
+    0x95, 0x01,                      /*   REPORT_COUNT (1) */ \
+    0x75, 0x08,                      /*   REPORT_SIZE (8) */ \
+    0x15, 0x00,                      /*   LOGICAL_MINIMUM (0) */ \
+    0x26, 0xE7, 0x00,                /*   LOGICAL_MAXIMUM (231) */ \
+    /*0x05, 0x07,                         USAGE_PAGE (Keyboard) */ \
+    0x19, 0x00,                      /*   USAGE_MINIMUM (Reserved (no event indicated)) */ \
+    0x29, 0xE7,                      /*   USAGE_MAXIMUM (Keyboard Right GUI) */ \
+    0x81, 0x00,                      /*   INPUT (Data,Ary,Abs) */ \
+\
+    /* End */ \
+	0xC0						     /*   End Collection */
+#endif
+
 //TODO limit to system keys only?
 #ifndef HID_REPORT_SYSTEMCONTROL
 #define HID_REPORT_SYSTEMCONTROL(report_id) /*  System Control (Power Down, Sleep, Wakeup, ...) */ \
@@ -420,6 +525,10 @@ void	HID_SendReport(uint8_t id, const void* data, int len);
 
 #ifdef HID_KEYBOARD_API_ENABLE
 #include "Keyboard.h"
+#endif
+
+#ifdef HID_KEYBOARD_NKRO_API_ENABLE
+#include "KeyboardNKRO.h"
 #endif
 
 #ifdef HID_RAWHID_API_ENABLE
