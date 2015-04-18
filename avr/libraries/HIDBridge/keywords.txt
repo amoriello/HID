@@ -12,14 +12,14 @@
 
 #USB-related keywords
 
-USBDevice	KEYWORD3
-Keyboard	KEYWORD3
-KeyboardNKRO	KEYWORD3
-Mouse	KEYWORD3
-RawHID	KEYWORD3
-System	KEYWORD3
-Consumer	KEYWORD3
-Gamepad	KEYWORD3
+USBDevice	KEYWORD1
+Keyboard	KEYWORD1
+KeyboardNKRO	KEYWORD1
+Mouse	KEYWORD1
+RawHID	KEYWORD1
+System	KEYWORD1
+Consumer	KEYWORD1
+Gamepad	KEYWORD1
 press	KEYWORD2
 release	KEYWORD2
 releaseAll	KEYWORD2
