@@ -16,7 +16,6 @@
 ** SOFTWARE.  
 */
 
-#include "PluggableUSB.h"
 #include "HID.h"
 #include "HIDDevice.h"
 #include "HID-Project.h" // Only used for the BootKeyboard setting
@@ -30,14 +29,14 @@ HID_ HID;
 //	HID Interface
 
 // Static variables
-uint8_t HID_::HID_ENDPOINT_INT;
-uint8_t HID_::HID_INTERFACE;
-HIDDescriptor HID_::_hidInterface;
-HIDDevice* HID_::rootDevice = NULL;
-uint16_t HID_::sizeof_hidReportDescriptor = 0;
-uint8_t HID_::modules_count = 0;
-uint8_t HID_::_hid_protocol = 1;
-uint8_t HID_::_hid_idle = 1;
+//uint8_t HID_::HID_ENDPOINT_INT;
+//uint8_t HID_::HID_INTERFACE;
+//HIDDescriptor HID_::_hidInterface;
+//HIDDevice* HID_::rootDevice = NULL;
+//uint16_t HID_::sizeof_hidReportDescriptor = 0;
+//uint8_t HID_::modules_count = 0;
+//uint8_t HID_::_hid_protocol = 1;
+//uint8_t HID_::_hid_idle = 1;
 
 //================================================================================
 //================================================================================
@@ -196,24 +195,21 @@ bool HID_::HID_Setup(USBSetup& setup, u8 i)
 	}
 }
 
-HID_::HID_(void)
+HID_::HID_(void) : USBnode(&USBcb), USBcb(
+PUSBCallbacks
 {
-	static uint8_t endpointType[1];
-
-	endpointType[0] = EP_TYPE_INTERRUPT_IN;
-
-	static PUSBCallbacks cb = {
-		.setup = HID_Setup,
-		.getInterface = &HID_GetInterface,
-		.getDescriptor = &HID_GetDescriptor,
+		.setup = this->HID_Setup,
+		.getInterface = this->HID_GetInterface,
+		.getDescriptor = this->HID_GetDescriptor,
 		.numEndpoints = 1,
 		.numInterfaces = 1,
 		.endpointType = endpointType,
-	};
+		}
+)
+{
+	endpointType[0] = EP_TYPE_INTERRUPT_IN;
 
-	static PUSBListNode node(&cb);
-
-	HID_ENDPOINT_INT = PUSB_AddFunction(&node, &HID_INTERFACE);
+	HID_ENDPOINT_INT = PUSB_AddFunction(&USBnode, &HID_INTERFACE);
 }
 
 HID_::operator bool() {

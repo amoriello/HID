@@ -29,6 +29,8 @@
 
 #define _USING_HID
 
+#include "PluggableUSB.h"
+
 //================================================================================
 //================================================================================
 //  HID 'Driver'
@@ -72,28 +74,32 @@ public:
   HID_(void);
   operator bool();
   
+  PUSBCallbacks USBcb;
+  PUSBListNode USBnode;
+  
   // Only access this class via the HIDDevice
-private:
+//private:
   friend HIDDevice;
   int begin(void);
   void SendReport(uint8_t id, const void* data, int len);
   void AppendDescriptor(HIDDevice* device);
   void SetInterface(InterfaceDescriptor interface);
   
-  // Static functions
-  static int HID_GetInterface(u8* interfaceNum);
-  static int HID_GetDescriptor(int8_t t);
-  static bool HID_Setup(USBSetup& setup, u8 i);
+  // Functions
+  int HID_GetInterface(u8* interfaceNum);
+  int HID_GetDescriptor(int8_t t);
+  bool HID_Setup(USBSetup& setup, u8 i);
   
-  // Static variables
-  static uint8_t HID_ENDPOINT_INT;
-  static uint8_t HID_INTERFACE;
-  static HIDDescriptor _hidInterface;
-  static HIDDevice* rootDevice;
-  static uint16_t sizeof_hidReportDescriptor;
-  static uint8_t modules_count;
-  static uint8_t _hid_protocol;
-  static uint8_t _hid_idle;
+  // Variables
+  uint8_t HID_ENDPOINT_INT;
+  uint8_t HID_INTERFACE;
+  HIDDescriptor _hidInterface;
+  HIDDevice* rootDevice;
+  uint16_t sizeof_hidReportDescriptor;
+  uint8_t modules_count;
+  uint8_t _hid_protocol;
+  uint8_t _hid_idle;
+  uint8_t endpointType[1];
 };
 
 #define HID_TX HID_ENDPOINT_INT
