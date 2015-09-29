@@ -66,7 +66,9 @@ typedef struct
   EndpointDescriptor      in;
 } HIDDescriptor;
 
-class HID_
+#include "USBDevice.h"
+
+class HID_ : private CUSBDevice
 {
 public:
   HID_(void);
@@ -79,6 +81,12 @@ private:
   void SendReport(uint8_t id, const void* data, int len);
   void AppendDescriptor(HIDDevice* device);
   void SetInterface(InterfaceDescriptor interface);
+  
+  // TODO virtual required here again?
+  virtual bool setup(USBSetup& setup, u8 i);
+  virtual int getInterface(u8* interfaceNum);
+  virtual int getDescriptor(int8_t t);
+  uint8_t endpointType[1];
   
   // Static functions
   static int HID_GetInterface(u8* interfaceNum);

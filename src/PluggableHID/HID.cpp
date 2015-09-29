@@ -196,13 +196,14 @@ bool HID_::HID_Setup(USBSetup& setup, u8 i)
 	}
 }
 
-HID_::HID_(void)
+HID_::HID_(void) :
+CUSBDevice(1,1,endpointType)
 {
-	static uint8_t endpointType[1];
+	//static uint8_t endpointType[1];
 
 	endpointType[0] = EP_TYPE_INTERRUPT_IN;
 
-	static PUSBCallbacks cb = {
+	/*static PUSBCallbacks cb = {
 		.setup = HID_Setup,
 		.getInterface = &HID_GetInterface,
 		.getDescriptor = &HID_GetDescriptor,
@@ -214,6 +215,12 @@ HID_::HID_(void)
 	static PUSBListNode node(&cb);
 
 	HID_ENDPOINT_INT = PUSB_AddFunction(&node, &HID_INTERFACE);
+	*/
+	
+//numEndpoints = 1;
+//numInterfaces = 1;
+HID_INTERFACE = firstInterface;
+HID_ENDPOINT_INT = firstEndpoint;
 }
 
 HID_::operator bool() {
@@ -229,6 +236,19 @@ HID_::operator bool() {
 int HID_::begin(void)
 {
 	return 0;
+}
+
+// TODO remove wrapper
+bool HID_::setup(USBSetup& setup, u8 i){
+	return HID_Setup(setup, i);
+}
+
+int HID_::getInterface(u8* interfaceNum){
+	return HID_GetInterface(interfaceNum);
+}
+
+int HID_::getDescriptor(int8_t t){
+	return HID_GetDescriptor(t);
 }
 
 #endif /* if defined(USBCON) */
